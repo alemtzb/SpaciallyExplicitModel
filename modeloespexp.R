@@ -4,7 +4,7 @@ require(cubature)
 require(rgl)
 
 datdisp=read.csv("disp.csv") #dispersal kernel parameters
-datheta=read.csv("Thetas.csv") #moodel dispersal
+datheta=read.csv("Thetas.csv") #model dispersion
 DD=read.csv("DDs.csv") #mortality parameter
 BBs1=read.csv("BBs1.csv") #parameter a
 BBs2=read.csv("BBs2.csv") #parameter b
@@ -28,6 +28,13 @@ rownames(alphas2)=alfas2[,1]
 bbetas=as.matrix(betas[,2:ncol(betas)])
 rownames(bbetas)=betas[,1]
 
+#To obtain total abundance of the species  for which we did not calculate pairwise interactions following Bayesian Variable Selection
+spnum=ncol(alphas1) #to obtain the number of species in our study
+tx0=matrix(ncol=ncol(alphas1),nrow=nrow(alphas1))
+0->tx0[which(is.na(alphas1[,])=="FALSE")]
+1->tx0[which(is.na(alphas1[,])=="TRUE")]
+tx0=tx0[,-37]
+
 #We take into account only the birth rate parameters of the last seven years
 BB1=BB1[,8:14]
 BB2=BB2[,8:14]
@@ -41,12 +48,6 @@ bbetas=1/(1+exp(-bbetas))
 0->bbetas[which(is.na(bbetas[,])=="TRUE")]
 theta=exp(datheta[,2])
 
-#To obtain total abundance of the species  for which we did not calculate pairwise interactions following Bayesian Variable Selection
-spnum=ncol(alphas1) #to obtain the number of species in our study
-tx0=matrix(ncol=ncol(alphas1),nrow=nrow(alphas1))
-0->tx0[which(is.na(alphas1[,])=="FALSE")]
-1->tx0[which(is.na(alphas1[,])=="TRUE")]
-tx0=tx0[,-37]
 
 #separate the parameters of the species for which we have abundance data
 alpabu1=alphas1[1:33,1:37]
@@ -143,16 +144,16 @@ lamx=function(alpabu1,alpabu2,betabu,DDabu,BB1abu,BB2abu,BB3abu,alppa1,alppa2,be
         #return(kerExp(r,alfa,cc)) #***** Check this!!!!!!!!!!!!
 } 
 
-#**********Pregunta**************
-#Returns the probability of dispersal of a seed to any 1 dm2 square in a dims * dims latice where the seed is produced in the central square
+
+#Returns the probability of dispersal of a seed to all 1 dm2 square in a dims * dims latice where the seed is produced in the central square
 kerBidim=function(alfa,cc,dims){
-	if(dims/2==floor(dims/2)) stop("dims must be odd") #why?
-	lims=seq(-dims*0.5,dims*0.5,1)
-	ncat=length(lims)-1
+	if(dims/2==floor(dims/2)) stop("dims must be odd") #para que cuadrito pueda estar en medio
+	lims=seq(-dims*0.5,dims*0.5,1) #calcula los límites (medidadas en decímetros)
+	ncat=length(lims)-1 #número de cuadros que tienes 
 	mat=matrix(ncol=ncat,nrow=ncat)
-	for(i in 1:ncat){
+	for(i in 1:ncat){ #rellena todos los cuadritos
 		for(j in 1:ncat){
-			mat[i,j]=hcubature(kerExp,c(lims[i],lims[j]),c(lims[i+1],lims[j+1]),alfa=alfa,cc=cc)$integral
+			mat[i,j]=hcubature(kerExp,c(lims[i],lims[j]),c(lims[i+1],lims[j+1]),alfa=alfa,cc=cc)$integral #integral en 3D
 		}
 	}
 	mat
@@ -164,9 +165,10 @@ allker=function(alfa,cc,dims){
 	nsp=length(alfa)
 	arr=array(dim=c(dims,dims,nsp))
 	for(i in 1:nsp) arr[,,i]=kerBidim(alfa[i],cc[i],dims)
-	for(i in 1:nsp) arr[,,i]=arr[,,i]/sum(arr[,,i])
-	arr[c((ceiling(dims/2)):dims,1:(ceiling(dims/2)-1)),c((ceiling(dims/2)):dims,1:(ceiling(dims/2)-1)),]
-}
+	#for(i in 1:nsp) arr[,,i]=arr[,,i]/sum(arr[,,i])
+	for(i in 1:nsp) arr[,,i]=arr[,,i]+(1-sum(arr[,,i]))/dims^2 
+	arr[c((ceiling(dims/2)):dims,1:(ceiling(dims/2)-1)),c((ceiling(dims/2)):dims,1:(ceiling(dims/2)-1)),] #hace el toro
+} #array donde cada página es una especies y tiene la matriz de semillas que salen del cuadro central
 
 
 
@@ -182,7 +184,7 @@ rearrange=function(mat,i,j){
 
 #simulates 2D population growth using dispersal kernel 
 simu=function(alpabu1,alpabu2,betabu,DDabu,BB1abu,BB2abu,BB3abu,alppa1,alppa2,betapa,DDpa,BB1pa,BB2pa,BB3pa,txini,tx0,dispker,theta,yr,depth){
-	dims=dim(txini)[1] #txini defined bellow
+	dims=dim(txini)[1] #txini defined below
 	nsp=dim(txini)[3]
 	txseed=array(0,dim=c(dims,dims,nsp))
 	txabu=array(0,dim=c(dims,dims,nrow(alpabu1)))
@@ -193,8 +195,8 @@ simu=function(alpabu1,alpabu2,betabu,DDabu,BB1abu,BB2abu,BB3abu,alppa1,alppa2,be
 			dkij=rearrange(dispker,i,j) #dispker is an object created with the allker function (the one that makes the toroidal object). It uses the dispersal parameters.
 		pret2=lamx(alpabu1,alpabu2,betabu,DDabu,BB1abu,BB2abu,BB3abu,alppa1,alppa2,betapa,DDpa,BB1pa,BB2pa,BB3pa,txini[i,j,],tx0,yr,depth) 
 			seed=c(pret2[[1]][,2],pret2[[2]][,2]) #Here we use the seed production obtained using lamx (abundance data [[1]] and presence/absencce data [[2]])
-			for(k in 1:nsp) txseed[,,k]=seed[k]*dkij[,,k]+txseed[,,k] #las semillas que se producieron se multiplican por el kernel de dispersión y se suma ¿el número de semillas del tiempo anterior?
-			txabu[i,j,]=pret2[[1]][,1] #txabu es ahora el número de individuos que había en el tiempo anterior más las que llegan en preparación por el siguiente tiempo en la simulación
+			for(k in 1:nsp) txseed[,,k]=seed[k]*dkij[,,k]+txseed[,,k] #las semillas que se producieron se multiplican por el kernel de dispersión y se suman las especies que ya se habían producido en otros cuadros en ese tiempo
+			txabu[i,j,]=pret2[[1]][,1]
 			txpa[i,j,]=pret2[[2]][,1] #mismo que arriba pero ahora para presencia/ausencia
 		}
 	}
@@ -236,13 +238,13 @@ densini=function(dims,theta,densobs){
 
 densini2=function(dims,theta,densobs){
 	txini=txini=array(0,dim=c(dims,dims,36))
-	densobs[which(densobs<0.1)]=0.5
+	densobs[which(densobs<0.1)]=0.5 #no deja que haya tamaños poblacionales muy chicos para que no opere la estocasticidad demográfica,
 	for(i in 1:33) txini[,,i]=rpois(dims^2,2)
 	for(i in 34:36) txini[,,i]=rbinom(dims^2,size=1,prob=0.5)
 	txini
 }
-aa=allker(datdisp[,2],datdisp[,3],33)
-txini=densini2(33,theta,densobs) 
+aa=allker(datdisp[,2],datdisp[,3],11)
+txini=densini2(11,theta,densobs) 
 
 bb=simu(alpabu1,alpabu2,betabu,DDabu,BB1abu,BB2abu,BB3abu,alppa1,alppa2,betapa,DDpa,BB1pa,BB2pa,BB3pa,txini,tx0,aa,theta,3,20)
 bb=simut(alpabu1,alpabu2,betabu,DDabu,BB1abu,BB2abu,BB3abu,alppa1,alppa2,betapa,DDpa,BB1pa,BB2pa,BB3pa,txini,tx0,dispker,theta,20,1,100)
