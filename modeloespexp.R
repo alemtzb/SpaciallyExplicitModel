@@ -2,6 +2,7 @@ setwd("~/Desktop/SpExModel")
 
 require(cubature)
 require(rgl)
+library(beepr)
 
 datdisp=read.csv("disp.csv") #dispersal kernel parameters
 datheta=read.csv("Thetas.csv") #model dispersion
@@ -243,9 +244,10 @@ densini2=function(dims,theta,densobs){
 	for(i in 34:36) txini[,,i]=rbinom(dims^2,size=1,prob=0.5)
 	txini
 }
-aa=allker(datdisp[,2],datdisp[,3],11)
-txini=densini2(11,theta,densobs) 
+aa=allker(datdisp[,2],datdisp[,3],31)
+txini=densini2(31,theta,densobs)
 
-bb=simu(alpabu1,alpabu2,betabu,DDabu,BB1abu,BB2abu,BB3abu,alppa1,alppa2,betapa,DDpa,BB1pa,BB2pa,BB3pa,txini,tx0,aa,theta,3,20)
+
+#bb=simu(alpabu1,alpabu2,betabu,DDabu,BB1abu,BB2abu,BB3abu,alppa1,alppa2,betapa,DDpa,BB1pa,BB2pa,BB3pa,txini,tx0,aa,theta,3,20)
 bb=simut(alpabu1,alpabu2,betabu,DDabu,BB1abu,BB2abu,BB3abu,alppa1,alppa2,betapa,DDpa,BB1pa,BB2pa,BB3pa,txini,tx0,dispker,theta,20,1,100)
-
+beep() 
