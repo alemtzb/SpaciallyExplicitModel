@@ -265,4 +265,3 @@ beep()
 cien=bb[,,,100]
 cbind(rownames(bbetas),apply(cien,3,sum))
 
-In rnbinom(dims^2, size = theta[k], mu = t2[, , k]) : NAs produced

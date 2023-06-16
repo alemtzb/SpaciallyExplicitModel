@@ -253,3 +253,6 @@ txini=densini2(31,theta,densobs)
 #bb=simu(alpabu1,alpabu2,betabu,DDabu,BB1abu,BB2abu,BB3abu,alppa1,alppa2,betapa,DDpa,BB1pa,BB2pa,BB3pa,txini,tx0,aa,theta,3,20)
 bb=simut(alpabu1,alpabu2,betabu,DDabu,BB1abu,BB2abu,BB3abu,alppa1,alppa2,betapa,DDpa,BB1pa,BB2pa,BB3pa,txini,tx0,dispker,theta,20,1,100)
 beep() 
+
+cien=bb[,,,100]
+cbind(rownames(bbetas),apply(cien,3,sum))
