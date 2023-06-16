@@ -168,7 +168,9 @@ allker=function(alfa,cc,dims){
 	for(i in 1:nsp) arr[,,i]=kerBidim(alfa[i],cc[i],dims)
 	#for(i in 1:nsp) arr[,,i]=arr[,,i]/sum(arr[,,i])
 	for(i in 1:nsp) arr[,,i]=arr[,,i]+(1-sum(arr[,,i]))/dims^2 
-	arr[c((ceiling(dims/2)):dims,1:(ceiling(dims/2)-1)),c((ceiling(dims/2)):dims,1:(ceiling(dims/2)-1)),] #hace el toro
+	kernel=arr[c((ceiling(dims/2)):dims,1:(ceiling(dims/2)-1)),c((ceiling(dims/2)):dims,1:(ceiling(dims/2)-1)),] #hace el toro
+	kernel[which(kernel<0)]=0
+	kernel
 } #array donde cada página es una especies y tiene la matriz de semillas que salen del cuadro central
 
 
