@@ -1,18 +1,17 @@
-setwd("~/Desktop/SpExModel")
-
 require(cubature)
 require(rgl)
 library(beepr)
 
-datdisp=read.csv("disp.csv") #dispersal kernel parameters
-datheta=read.csv("Thetas.csv") #model dispersion
-DD=read.csv("DDs.csv") #mortality parameter
-BBs1=read.csv("BBs1.csv") #parameter a
-BBs2=read.csv("BBs2.csv") #parameter b
-BBs3=read.csv("BBs3.csv") #parametro c
-alfas1=read.csv("alfas1.csv") #parameter g 
-alfas2=read.csv("alfas2.csv") #parameter h
-betas=read.csv("betas.csv")#facilitation parameter
+#read data
+datdisp=read.csv("../SpaciallyExplicitModel/disp.csv") #dispersal kernel parameters
+datheta=read.csv("../SpaciallyExplicitModel/Thetas.csv") #model dispersion
+DD=read.csv("../SpaciallyExplicitModel/DDs.csv") #mortality parameter
+BBs1=read.csv("../SpaciallyExplicitModel/BBs1.csv") #parameter a
+BBs2=read.csv("../SpaciallyExplicitModel/BBs2.csv") #parameter b
+BBs3=read.csv("../SpaciallyExplicitModel/BBs3.csv") #parametro c
+alfas1=read.csv("../SpaciallyExplicitModel/alfas1.csv") #parameter g 
+alfas2=read.csv("../SpaciallyExplicitModel/alfas2.csv") #parameter h
+betas=read.csv("../SpaciallyExplicitModel/betas.csv")#facilitation parameter
 
 
 #convert all data to matrices
