@@ -8,7 +8,7 @@ datheta=read.csv("../SpaciallyExplicitModel/Thetas.csv") #model dispersion
 DD=read.csv("../SpaciallyExplicitModel/DDs.csv") #mortality parameter
 BBs1=read.csv("../SpaciallyExplicitModel/BBs1.csv") #parameter a
 BBs2=read.csv("../SpaciallyExplicitModel/BBs2.csv") #parameter b
-BBs3=read.csv("../SpaciallyExplicitModel/BBs3.csv") #parametro c
+BBs3=read.csv("../SpaciallyExplicitModel/BBs3.csv") #parameter c
 alfas1=read.csv("../SpaciallyExplicitModel/alfas1.csv") #parameter g 
 alfas2=read.csv("../SpaciallyExplicitModel/alfas2.csv") #parameter h
 betas=read.csv("../SpaciallyExplicitModel/betas.csv")#facilitation parameter
@@ -90,6 +90,33 @@ lam=function(DD,BB1,BB2,BB3,alphas1,alphas2,bbetas,tx,txothers,year,depth){
 	#to match the published code and checked that we were taking the right columns and rows into account
 }
 
+#
+#
+###############To assess positive growth rates###############
+#Calculate (B-D)/(Dalfa) for each species for each year
+ai=diag(exp(alphas1))
+
+growthrates=function(ai,BB1,BB2,BB3,DD,depth){
+  BB=exp(BB1+BB2*depth+BB3*depth^2)
+  gr <- matrix(nrow=nrow(BB),ncol=ncol(BB))
+  rownames(gr) <- DD[,1]
+  DD <- (DD[,2])
+  for(i in 1:nrow(gr)){
+    for(j in 1:ncol(gr)){
+      gr[i,j]<-(BB[i,j]-DD[i])/(DD[i]*ai[i])
+    }
+  }
+  return(gr)
+}
+
+#do this for depths of 5, 15, 25
+gr5=growthrates(ai,BB1,BB2,BB3,DD,5)
+gr15=growthrates(ai,BB1,BB2,BB3,DD,5)
+gr25=growthrates(ai,BB1,BB2,BB3,DD,5)
+
+#
+############End assess positive growth rates
+
 
 #Function for species with presence absence daata to simulate if the species is present of absent in the next yearv
 lampa=function(DD,BB1,BB2,BB3,alphas1,alphas2,bbetas,tx,txothers,year,depth){
@@ -115,17 +142,16 @@ lampa=function(DD,BB1,BB2,BB3,alphas1,alphas2,bbetas,tx,txothers,year,depth){
 	#to match the published code and checked that we were taking the right columns and rows into account
 }
 
-#here initial species abundances are assignes in published code
+#here initial species abundances are assigned in published code
 
-#Function that integrates both species with abuncance data and species with presence absence data into the same simulation
+#Function that integrates both species with abundance data and species with presence absence data into the same simulation
 lamx=function(alpabu1,alpabu2,betabu,DDabu,BB1abu,BB2abu,BB3abu,alppa1,alppa2,betapa,DDpa,BB1pa,BB2pa,BB3pa,tx,tx0,year,depth){
 	txothers=as.vector(tx0%*%as.matrix(tx))
 	t2abu=lam(DDabu,BB1abu,BB2abu,BB3abu,alpabu1,alpabu2,betabu,tx,txothers[1:33],year,depth)
 	t2pa=lampa(DDpa,BB1pa,BB2pa,BB3pa,alppa1,alppa2,betpa,tx,txothers[34:36],year,depth)
 	list(t2abu,t2pa)
-	#here a list of data for presence/absence species and abundance speciesi is returned instead of an object that includes them both
+	#here a list of data for presence/absence species and abundance species is returned instead of an object that includes them both
 	}
-
 
 
 
@@ -209,7 +235,6 @@ simu=function(alpabu1,alpabu2,betabu,DDabu,BB1abu,BB2abu,BB3abu,alppa1,alppa2,be
 	t2
 }
 
-#*******I still need to go over simut*******
 simut=function(alpabu1,alpabu2,betabu,DDabu,BB1abu,BB2abu,BB3abu,alppa1,alppa2,betapa,DDpa,BB1pa,BB2pa,BB3pa,txini,tx0,dispker,theta,depth,burn,iter){
 	dims=dim(txini)[1]
 	nsp=dim(txini)[3]
