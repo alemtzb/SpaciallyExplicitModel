@@ -90,8 +90,6 @@ lam=function(DD,BB1,BB2,BB3,alphas1,alphas2,bbetas,tx,txothers,year,depth){
 	#to match the published code and checked that we were taking the right columns and rows into account
 }
 
-#
-#
 ###############To assess positive growth rates###############
 #Calculate (B-D)/(Dalfa) for each species for each year
 ai=diag(exp(alphas1))
@@ -111,10 +109,9 @@ growthrates=function(ai,BB1,BB2,BB3,DD,depth){
 
 #do this for depths of 5, 15, 25
 gr5=growthrates(ai,BB1,BB2,BB3,DD,5)
-gr15=growthrates(ai,BB1,BB2,BB3,DD,5)
-gr25=growthrates(ai,BB1,BB2,BB3,DD,5)
+gr15=growthrates(ai,BB1,BB2,BB3,DD,15)
+gr25=growthrates(ai,BB1,BB2,BB3,DD,25)
 
-#
 ############End assess positive growth rates
 
 
